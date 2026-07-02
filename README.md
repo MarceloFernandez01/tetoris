@@ -20,7 +20,7 @@ Implementación del clásico **Tetris** en JavaScript vanilla, usando HTML5 Canv
   - [Cómo funciona](#cómo-funciona)
     - [1. `index.html`](#1-indexhtml)
     - [2. `style.css`](#2-stylecss)
-    - [3. `game.js`](#3-gamejs)
+    - [3. Los archivos de `js/`](#3-los-archivos-de-js)
     - [Flujo del juego](#flujo-del-juego)
   - [Tecnologías](#tecnologías)
   - [Estructura del proyecto](#estructura-del-proyecto)
@@ -90,7 +90,7 @@ Después abre `http://localhost:8000` en el navegador.
 
 ## Cómo funciona
 
-El juego se compone de tres archivos que cooperan:
+El juego se compone de `index.html`, `style.css` y la carpeta `js/`, que cooperan entre sí:
 
 ### 1. `index.html`
 
@@ -99,14 +99,31 @@ Define la estructura visual:
 - Un `<canvas id="board">` de **300 × 600** píxeles donde se renderiza el tablero.
 - Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza y la lista de controles.
 - Un overlay para los estados **PAUSA** y **GAME OVER**.
+- Al final del `<body>`, la carga en orden de los scripts de `js/` (ver más abajo).
 
 ### 2. `style.css`
 
 Aporta el aspecto visual con estética _dark / retro arcade_: fondo oscuro, tipografía monoespaciada para los marcadores y _backdrop blur_ en los overlays.
 
-### 3. `game.js`
+### 3. Los archivos de `js/`
 
-Contiene toda la lógica del juego. A grandes rasgos:
+Toda la lógica del juego, repartida en archivos por responsabilidad. No hay build ni módulos: son `<script>` clásicos que comparten un mismo scope global, por lo que **el orden de carga en `index.html` importa**.
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `constants.js` | Dimensiones del tablero, colores, formas de las piezas y tabla de puntuación. |
+| `dom.js` | Referencias a los elementos del DOM (canvas, HUD, overlay). |
+| `state.js` | Declaración del estado mutable (`board`, `current`, `next`, `score`, etc.). |
+| `board.js` | `createBoard`, `collide` y `clearLines`: modelo del tablero y colisiones. |
+| `piece.js` | `randomPiece`, `rotateCW`, `tryRotate`, `merge`, `ghostY`: generación, rotación y fusión de piezas. |
+| `gameplay.js` | `hardDrop`, `softDrop`, `lockPiece`, `spawn`: acciones de juego. |
+| `hud.js` | `updateHUD`, `endGame`, `togglePause`: panel lateral y overlays. |
+| `render.js` | `drawBlock`, `drawGrid`, `draw`, `drawNext`: dibujado en canvas. |
+| `loop.js` | `loop`: bucle principal basado en `requestAnimationFrame`. |
+| `input.js` | Listeners de teclado y del botón de reinicio. |
+| `main.js` | `init` y arranque del juego. |
+
+Puntos clave de la lógica:
 
 - **Modelo del tablero**: una matriz `ROWS × COLS` donde cada celda guarda `0` (vacía) o un índice de color (1–7) que identifica la pieza.
 - **Piezas**: definidas como matrices cuadradas. Para rotar se calcula la transposición + reverso de filas (`rotateCW`).
@@ -156,9 +173,20 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ```
 03-tetris/
-├── index.html      # Estructura del DOM y canvas
-├── style.css       # Estilos del juego (dark theme)
-├── game.js         # Toda la lógica del Tetris (~300 líneas)
+├── index.html          # Estructura del DOM y canvas
+├── style.css           # Estilos del juego (dark theme)
+├── js/                 # Lógica del Tetris, repartida por responsabilidad
+│   ├── constants.js     # Dimensiones, colores, piezas y puntuación
+│   ├── dom.js            # Referencias a elementos del DOM
+│   ├── state.js          # Estado mutable del juego
+│   ├── board.js          # Tablero, colisiones y limpieza de líneas
+│   ├── piece.js           # Generación, rotación y fusión de piezas
+│   ├── gameplay.js        # Hard drop, soft drop, spawn
+│   ├── hud.js             # Panel lateral y overlays
+│   ├── render.js          # Dibujado en canvas
+│   ├── loop.js            # Bucle principal (requestAnimationFrame)
+│   ├── input.js           # Teclado y botón de reinicio
+│   └── main.js            # Inicialización y arranque
 └── README.md
 ```
 
@@ -166,7 +194,7 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ## Personalización
 
-Algunos parámetros fáciles de tunear en `game.js`:
+Algunos parámetros fáciles de tunear en `js/constants.js`:
 
 | Constante      | Significado                              | Por defecto           |
 | -------------- | ---------------------------------------- | --------------------- |
@@ -178,6 +206,8 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
 
 > Si cambias `COLS`, `ROWS` o `BLOCK`, recuerda ajustar también `width` y `height` del `<canvas id="board">` en `index.html` para que coincida (`COLS × BLOCK` × `ROWS × BLOCK`).
+>
+> `dropInterval` se inicializa en `js/main.js` (dentro de `init()`), no en `constants.js`.
 
 ---
 
