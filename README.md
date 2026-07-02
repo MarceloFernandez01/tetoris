@@ -42,6 +42,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
+- **Tema claro/oscuro** mediante un interruptor, con la preferencia guardada en `localStorage`.
 
 ---
 
@@ -96,14 +97,15 @@ El juego se compone de `index.html`, `style.css` y la carpeta `js/`, que coopera
 
 Define la estructura visual:
 
+- Un interruptor para alternar entre **tema claro y oscuro**.
 - Un `<canvas id="board">` de **300 × 600** píxeles donde se renderiza el tablero.
-- Un panel lateral con `SCORE`, `LINES`, `LEVEL`, vista de la siguiente pieza y la lista de controles.
+- Un panel lateral con `PUNTUACIÓN`, `LINEAS`, `NIVEL`, vista de la siguiente pieza (`next-canvas`) y la lista de controles.
 - Un overlay para los estados **PAUSA** y **GAME OVER**.
 - Al final del `<body>`, la carga en orden de los scripts de `js/` (ver más abajo).
 
 ### 2. `style.css`
 
-Aporta el aspecto visual con estética _dark / retro arcade_: fondo oscuro, tipografía monoespaciada para los marcadores y _backdrop blur_ en los overlays.
+Aporta el aspecto visual con estética _dark / retro arcade_ (con variante clara): tipografía monoespaciada para los marcadores, _backdrop blur_ en los overlays y variables de color que cambian según la clase `light-theme` del `<body>`.
 
 ### 3. Los archivos de `js/`
 
@@ -117,11 +119,11 @@ Toda la lógica del juego, repartida en archivos por responsabilidad. No hay bui
 | `board.js` | `createBoard`, `collide` y `clearLines`: modelo del tablero y colisiones. |
 | `piece.js` | `randomPiece`, `rotateCW`, `tryRotate`, `merge`, `ghostY`: generación, rotación y fusión de piezas. |
 | `gameplay.js` | `hardDrop`, `softDrop`, `lockPiece`, `spawn`: acciones de juego. |
-| `hud.js` | `updateHUD`, `endGame`, `togglePause`: panel lateral y overlays. |
+| `hud.js` | `updateHUD`, `endGame`, `togglePause`, `applyTheme`/`toggleTheme`: panel lateral, overlays y tema claro/oscuro. |
 | `render.js` | `drawBlock`, `drawGrid`, `draw`, `drawNext`: dibujado en canvas. |
 | `loop.js` | `loop`: bucle principal basado en `requestAnimationFrame`. |
-| `input.js` | Listeners de teclado y del botón de reinicio. |
-| `main.js` | `init` y arranque del juego. |
+| `input.js` | Listeners de teclado, del botón de reinicio y del interruptor de tema. |
+| `main.js` | `init`, `initTheme` y arranque del juego. |
 
 Puntos clave de la lógica:
 
@@ -134,10 +136,12 @@ Puntos clave de la lógica:
 - **Puntuación**: usa la tabla clásica `[0, 100, 300, 500, 800]` multiplicada por el nivel actual; el hard drop suma 2 puntos por celda recorrida y el soft drop 1 punto por fila.
 - **Nivel y velocidad**: el nivel sube cada 10 líneas; la velocidad de caída se calcula como `max(100, 1000 − (level − 1) × 90)` milisegundos.
 - **Ghost piece** (`ghostY`): proyecta la posición final de la pieza actual hacia abajo y la dibuja con `globalAlpha = 0.2`.
+- **Tema** (`applyTheme`/`toggleTheme`): alterna la clase `light-theme` en `<body>`, recalcula el color de la grilla leyendo la variable CSS `--grid-color` y persiste la elección en `localStorage` (`tetoris-theme`).
 
 ### Flujo del juego
 
 ```
+initTheme()                         → lee el tema guardado en localStorage
 init()
   ├─ createBoard()                  → matriz vacía
   ├─ next = randomPiece()
@@ -151,6 +155,7 @@ init()
      └─ requestAnimationFrame(loop)
 
    keydown → mover / rotar / soft-drop / hard-drop / pausa
+   change (theme-toggle) → toggleTheme()
 ```
 
 Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara `endGame()` y se muestra el overlay de **Game Over**.
@@ -174,7 +179,7 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 ```
 03-tetris/
 ├── index.html          # Estructura del DOM y canvas
-├── style.css           # Estilos del juego (dark theme)
+├── style.css           # Estilos del juego (tema claro/oscuro)
 ├── js/                 # Lógica del Tetris, repartida por responsabilidad
 │   ├── constants.js     # Dimensiones, colores, piezas y puntuación
 │   ├── dom.js            # Referencias a elementos del DOM
