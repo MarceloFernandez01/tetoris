@@ -3,9 +3,16 @@ name: Claude Issue Triage
 on:
   issues:
     types: [opened]
+  issue_comment:
+    types: [created]
 
 jobs:
   triage:
+    if: >
+      github.event_name == 'issues' ||
+      (github.event_name == 'issue_comment' &&
+       !github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '/triage'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,15 +32,27 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowedTools "Bash(gh label list:*),Bash(gh issue edit:*),Bash(gh issue view:*),Bash(gh issue comment:*)"'
           prompt: |
-            Analizá el issue #${{ github.event.issue.number }} del repositorio ${{ github.repository }}:
+            Estás analizando el issue #${{ github.event.issue.number }} del repositorio ${{ github.repository }}.
 
-            1. Leé el título y cuerpo del issue con `gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }}`.
-            2. Consultá los labels existentes con `gh label list --repo ${{ github.repository }}` y elegí únicamente entre esos los que apliquen. No crees labels nuevos. Si ninguno aplica, no asignes ninguno.
-            3. Aplicá los labels elegidos con `gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --add-label "<labels>"`.
-            4. Publicá un comentario con `gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "..."` que contenga un diagnóstico general del problema:
-               - Resumen del problema reportado.
-               - Causa probable y área del código afectada (el proyecto es un Tetris en JS vanilla; la lógica está repartida en `js/*.js` según se describe en `CLAUDE.md` del repo: constants, dom, state, board, piece, gameplay, hud, render, loop, input, main).
-               - Pasos sugeridos para implementar la solución, sin escribir el código todavía.
+            Modo de ejecución: "${{ github.event_name == 'issue_comment' && 're-triage' || 'inicial' }}"
+            (si es "re-triage", este análisis fue disparado por un comentario que empieza con `/triage`; ignorá el texto de ese comando, no es parte del reporte del issue).
+
+            1. Leé el título, cuerpo y labels actuales del issue con `gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json title,body,labels`.
+            2. Consultá los labels disponibles en el repo con `gh label list --repo ${{ github.repository }}` y elegí únicamente entre esos los que apliquen. No crees labels nuevos.
+               - Si el modo es "inicial": aplicá los labels que apliquen con `gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --add-label "<labels>"`. Si ninguno aplica, no asignes ninguno.
+               - Si el modo es "re-triage": comparalos con los labels ya presentes en el issue. Ejecutá `gh issue edit ... --add-label` **solo** si falta algún label claramente relevante que no esté ya asignado. Si los labels actuales ya son correctos, no ejecutes ese comando (no lo repitas ni agregues labels de más).
+            3. Publicá un comentario con `gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "..."` con un diagnóstico general del problema, escrito en **GitHub-Flavored Markdown válido** para que se renderice correctamente:
+               - Usá encabezados `##` para cada sección.
+               - Usá listas con `-` para enumerar puntos.
+               - Mencioná archivos y símbolos de código entre backticks (por ejemplo `js/board.js`).
+               - Dejá una línea en blanco entre secciones.
+
+               Secciones del comentario:
+               - `## Resumen`: resumen del problema reportado.
+               - `## Causa probable`: causa probable y área del código afectada (el proyecto es un Tetris en JS vanilla; la lógica está repartida en `js/*.js` según se describe en `CLAUDE.md` del repo: constants, dom, state, board, piece, gameplay, hud, render, loop, input, main).
+               - `## Pasos sugeridos`: pasos sugeridos para implementar la solución, sin escribir el código todavía.
+
+               Si el modo es "re-triage", indicá al inicio del comentario que es una actualización del diagnóstico.
 
             No modifiques el cuerpo original del issue.
         env:
