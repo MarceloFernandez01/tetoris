@@ -27,5 +27,5 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-restartBtn.addEventListener('click', init);
+restartBtn.addEventListener('click', () => init());
 themeToggle.addEventListener('change', toggleTheme);
