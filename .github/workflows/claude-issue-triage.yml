@@ -1,0 +1,40 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        id: claude-triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowedTools "Bash(gh label list),Bash(gh issue edit:*),Bash(gh issue view:*),Bash(gh issue comment:*)"'
+          prompt: |
+            Analizá el issue #${{ github.event.issue.number }} del repositorio ${{ github.repository }}:
+
+            1. Leé el título y cuerpo del issue con `gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }}`.
+            2. Consultá los labels existentes con `gh label list --repo ${{ github.repository }}` y elegí únicamente entre esos los que apliquen. No crees labels nuevos. Si ninguno aplica, no asignes ninguno.
+            3. Aplicá los labels elegidos con `gh issue edit ${{ github.event.issue.number }} --repo ${{ github.repository }} --add-label "<labels>"`.
+            4. Publicá un comentario con `gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "..."` que contenga un diagnóstico general del problema:
+               - Resumen del problema reportado.
+               - Causa probable y área del código afectada (el proyecto es un Tetris en JS vanilla; la lógica está repartida en `js/*.js` según se describe en `CLAUDE.md` del repo: constants, dom, state, board, piece, gameplay, hud, render, loop, input, main).
+               - Pasos sugeridos para implementar la solución, sin escribir el código todavía.
+
+            No modifiques el cuerpo original del issue.
+        env:
+          GH_TOKEN: ${{ github.token }}
