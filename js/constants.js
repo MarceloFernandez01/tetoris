@@ -15,6 +15,7 @@ const COLORS = [
   '#e57373', // Z - red
   '#6B4423', // J - brown
   '#ffb74d', // L - orange
+  '#90a4ae', // tuerca - gris metálico
 ];
 
 // Forma inicial de cada pieza (matrices cuadradas fijas). El valor de cada
@@ -28,6 +29,7 @@ const PIECES = [
   [[5,5,0],[0,5,5],[0,0,0]],                  // Z
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
+  [[8,8,8],[8,0,8],[8,8,8]],                  // tuerca (reto: centro hueco)
 ];
 
 // Puntos otorgados según la cantidad de líneas eliminadas de una vez (1-4).

@@ -3,7 +3,8 @@
 // Generación, rotación y fusión de piezas con el tablero.
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * 7) + 1;
+  // La tuerca (tipo 8) es un reto: aparece rara, ~1 de cada 12 piezas.
+  const type = Math.random() < 0.08 ? 8 : Math.floor(Math.random() * 7) + 1;
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
