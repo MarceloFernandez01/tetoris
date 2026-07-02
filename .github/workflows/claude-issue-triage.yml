@@ -70,6 +70,8 @@ jobs:
 
                Si el modo es "re-triage", indicá al inicio del comentario que es una actualización del diagnóstico. Si el comentario disparador incluía guía adicional después de `/triage`, priorizá y enfocá el contenido de estas mismas secciones según esa guía (sin quitar ninguna sección).
 
+               Al final del comentario, después de las secciones, agregá una línea separada con un pequeño recordatorio de que se puede comentar `/triage` seguido de más detalles (por ejemplo, "enfocate en la lógica de rotación") para pedir una actualización del diagnóstico enfocada en ese aspecto. (Solo para miembros y colaboradores del repositorio)
+
             No modifiques el cuerpo original del issue.
         env:
           GH_TOKEN: ${{ github.token }}
