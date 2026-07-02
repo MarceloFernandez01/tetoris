@@ -9,10 +9,16 @@ on:
 jobs:
   triage:
     if: >
-      github.event_name == 'issues' ||
-      (github.event_name == 'issue_comment' &&
-       !github.event.issue.pull_request &&
-       startsWith(github.event.comment.body, '/triage'))
+      (
+        github.event_name == 'issues' &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association)
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        !github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '/triage') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
