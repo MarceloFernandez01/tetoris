@@ -23,6 +23,9 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       hardDrop();
       break;
+    case 'KeyC':
+      holdPiece();
+      break;
   }
   updateHUD();
 });

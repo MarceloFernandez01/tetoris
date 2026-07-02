@@ -28,8 +28,27 @@ function lockPiece() {
 function spawn() {
   current = next;
   next = randomPiece();
+  canHold = true;
   if (collide(current.shape, current.x, current.y)) {
     endGame();
   }
   drawNext();
+}
+
+function holdPiece() {
+  if (!canHold) return;
+  const prevType = current.type;
+  if (hold === null) {
+    hold = prevType;
+    current = next;
+    next = randomPiece();
+    drawNext();
+  } else {
+    current = makePiece(hold);
+    hold = null;
+    next = makePiece(prevType);
+    drawNext();
+  }
+  canHold = false;
+  drawHold();
 }

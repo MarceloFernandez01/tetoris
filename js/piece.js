@@ -5,6 +5,12 @@
 function randomPiece() {
   // La tuerca (tipo 8) es un reto: aparece rara, ~1 de cada 12 piezas.
   const type = Math.random() < 0.08 ? 8 : Math.floor(Math.random() * 7) + 1;
+  return makePiece(type);
+}
+
+// Construye una pieza fresca del tipo dado, sin rotación previa y centrada
+// en su posición inicial. Usado también al sacar una pieza del hold.
+function makePiece(type) {
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
