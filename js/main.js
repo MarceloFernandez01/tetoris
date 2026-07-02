@@ -2,6 +2,11 @@
 
 // Inicialización y arranque del juego.
 
+function initTheme() {
+  const saved = localStorage.getItem('tetoris-theme');
+  applyTheme(saved === 'light' ? 'light' : 'dark');
+}
+
 function init() {
   board = createBoard();
   score = 0;
@@ -20,4 +25,5 @@ function init() {
   animId = requestAnimationFrame(loop);
 }
 
+initTheme();
 init();

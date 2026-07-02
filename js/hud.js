@@ -16,6 +16,18 @@ function endGame() {
   overlay.classList.remove('hidden');
 }
 
+function applyTheme(t) {
+  theme = t;
+  document.body.classList.toggle('light-theme', theme === 'light');
+  themeToggle.checked = theme === 'light';
+  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim();
+  localStorage.setItem('tetoris-theme', theme);
+}
+
+function toggleTheme() {
+  applyTheme(theme === 'light' ? 'dark' : 'light');
+}
+
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
